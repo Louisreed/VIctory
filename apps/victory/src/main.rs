@@ -184,6 +184,7 @@ fn show_config() -> Result<()> {
     for t in &cfg.test_titles {
         println!("test_title  : {}", status(&Some(t.clone())));
     }
+    let mut violations = 0usize;
     for p in cfg
         .game_dir
         .iter()
@@ -191,8 +192,12 @@ fn show_config() -> Result<()> {
         .chain([&cfg.cache_dir, &cfg.data_dir])
     {
         if let Err(e) = victory_core::ensure_outside_repo(p) {
-            println!("POLICY VIOLATION: {e}");
+            eprintln!("POLICY VIOLATION: {e}");
+            violations += 1;
         }
+    }
+    if violations > 0 {
+        anyhow::bail!("{violations} configured path(s) violate the asset policy");
     }
     Ok(())
 }
